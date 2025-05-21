@@ -1,5 +1,7 @@
 # PostgreSQL Node.js Demo
 
+![otel-postgres-hny](otel-postgres-hny.png)
+
 This project demonstrates a full-stack application with:
 - React frontend
 - Node.js backend
