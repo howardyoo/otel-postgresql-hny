@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: honeycomb-api-key
+data:
+  HONEYCOMB_API_KEY: <honeycomb api key encoded with base64>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: postgres-node-backend
+        ports:
+        - containerPort: 3000
+        env:
+        - name: HONEYCOMB_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: honeycomb-api-key
+              key: HONEYCOMB_API_KEY
+        - name: NODE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: POSTGRES_HOST
+          value: postgres
+        - name: POSTGRES_USER
+          value: postgres
+        - name: POSTGRES_PASSWORD
+          value: postgres
+        - name: POSTGRES_DB
+          value: postgres
+        - name: OTEL_SERVICE_NAME
+          value: backend
+        - name: OTEL_EXPORTER_OTLP_PROTOCOL
+          value: http/protobuf
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "https://api.honeycomb.io:443"
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: ip=$(POD_IP)
+        - name: OTEL_EXPORTER_OTLP_HEADERS
+          value: "x-honeycomb-team=${HONEYCOMB_API_KEY}"
+        - name: OTEL_LOG_LEVEL
+          value: DEBUG
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: 3000
+    targetPort: 3000
+  type: ClusterIP 

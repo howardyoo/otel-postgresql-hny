@@ -1,0 +1,16 @@
+apiVersion: skaffold/v2beta29
+kind: Config
+
+build:
+  artifacts:
+    - image: postgres-node-backend
+      context: ./backend
+    - image: postgres-node-frontend
+      context: ./frontend
+
+deploy:
+  kubectl:
+    manifests:
+      - k8s/backend.yaml 
+      - k8s/frontend.yaml
+      - k8s/postgres.yaml
